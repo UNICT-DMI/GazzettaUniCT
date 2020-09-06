@@ -65,15 +65,22 @@ func main() {
 		extensionFile := strings.ToLower(link[len(link)-4:])
 
 		if extensionFile == ".pdf" && link[2:9] == "verbali" {
-			fileUrl := "http://www.oocc.unict.it/oocc" + link[1:]
-			fmt.Println("fileUrl: " + fileUrl)
+			if len(link) > 45 {
+				documentType := strings.ToLower(link[10:17])
 
-			err := DownloadFile(fileUrl)
+				if documentType == "verbale" {
+					fileUrl := "http://www.oocc.unict.it/oocc" + link[1:]
+					fmt.Println("fileUrl: " + fileUrl)
 
-			if err != nil {
-				fmt.Println("Error download: " + fileUrl)
+					err := DownloadFile(fileUrl)
+
+					if err != nil {
+						fmt.Println("Error download: " + fileUrl)
+					}
+
+					fmt.Println(documentType)
+				}
 			}
-
 		}
 	})
 
