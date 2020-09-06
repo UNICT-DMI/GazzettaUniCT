@@ -20,6 +20,11 @@ func GetNameFromUrl(url string) string {
 
 func NewHistoryEntry(url string, pathfile string) error {
 	data, err := ioutil.ReadFile(pathfile)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	name := GetNameFromUrl(url)
 
 	var history []historyEntry
