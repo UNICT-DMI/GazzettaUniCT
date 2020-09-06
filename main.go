@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/gocolly/colly"
@@ -19,6 +22,31 @@ func createDataFolderIfNotExist() {
 		}
 	}
 
+}
+
+func DownloadFile(url string) error {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Get the filename
+	fileName := path.Base(url)
+	filePath := "./data/" + fileName
+
+	// Create the file
+	out, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
 
 func main() {
@@ -39,6 +67,13 @@ func main() {
 		if extensionFile == ".pdf" && link[2:9] == "verbali" {
 			fileUrl := "http://www.oocc.unict.it/oocc" + link[1:]
 			fmt.Println("fileUrl: " + fileUrl)
+
+			err := DownloadFile(fileUrl)
+
+			if err != nil {
+				fmt.Println("Error download: " + fileUrl)
+			}
+
 		}
 	})
 
