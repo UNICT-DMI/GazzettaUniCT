@@ -14,5 +14,6 @@ Il canale Telegram che ufficialmente supportiamo mediante questo progetto e' il 
 In futuro, potremmo supportare anche i canali dei relativi dipartimenti per inviare anche i verbali delle riunioni di Dipartimento, CdL e Paritetica nei rispettivi canali.
 
 ### Credits
-- Davide Carnemolla
-- Stefano Borzi
+- [Davide Carnemolla](https://github.com/Herbrant)
+- [Stefano Borzi](https://github.com/Helias)
+- [Lorenzo Catania](https://github.com/aegroto)
