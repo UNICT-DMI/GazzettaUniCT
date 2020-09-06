@@ -24,6 +24,18 @@ func createDataFolderIfNotExist() {
 
 }
 
+func createHistoryFileIfNotExist() {
+	_, err := os.Stat("./data/history")
+
+	if os.IsNotExist(err) {
+		_, errFile := os.Create("./data/history")
+
+		if errFile != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
 func DownloadFile(url string) error {
 
 	// Get the data
@@ -35,6 +47,7 @@ func DownloadFile(url string) error {
 
 	// Get the filename
 	fileName := path.Base(url)
+	fileName = strings.ReplaceAll(fileName, " ", "_")
 	filePath := "./data/" + fileName
 
 	// Create the file
@@ -51,6 +64,7 @@ func DownloadFile(url string) error {
 
 func main() {
 	createDataFolderIfNotExist()
+	createHistoryFileIfNotExist()
 
 	// Instantiate default collector
 	c := colly.NewCollector()
