@@ -12,7 +12,7 @@ type historyEntry struct {
 	Name string `json:"name"`
 }
 
-func getNameFromUrl(url string) string {
+func GetNameFromUrl(url string) string {
 	name := path.Base(url)
 	name = strings.ReplaceAll(name, " ", "_")
 	return name
@@ -20,7 +20,7 @@ func getNameFromUrl(url string) string {
 
 func NewHistoryEntry(url string, pathfile string) error {
 	data, err := ioutil.ReadFile(pathfile)
-	name := getNameFromUrl(url)
+	name := GetNameFromUrl(url)
 
 	var history []historyEntry
 
@@ -39,7 +39,7 @@ func NewHistoryEntry(url string, pathfile string) error {
 
 func EntryNotExist(url string, pathfile string) bool {
 	data, err := ioutil.ReadFile(pathfile)
-	name := getNameFromUrl(url)
+	name := GetNameFromUrl(url)
 
 	if err != nil {
 		log.Panic(err)

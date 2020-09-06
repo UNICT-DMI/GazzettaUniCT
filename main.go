@@ -38,7 +38,6 @@ func createHistoryFileIfNotExist() {
 }
 
 func DownloadFile(url string) error {
-
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
@@ -92,6 +91,7 @@ func main() {
 							fmt.Println("Error download: " + fileUrl)
 						} else {
 							err := history.NewHistoryEntry(fileUrl, historyPath)
+							log.Println(history.GetNameFromUrl(fileUrl) + " downloaded!")
 
 							if err != nil {
 								log.Println(err)
