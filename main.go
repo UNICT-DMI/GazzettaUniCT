@@ -24,18 +24,6 @@ func createDataFolderIfNotExist() {
 
 }
 
-func createHistoryFileIfNotExist() {
-	_, err := os.Stat("./data/history")
-
-	if os.IsNotExist(err) {
-		_, errFile := os.Create("./data/history")
-
-		if errFile != nil {
-			log.Fatal(err)
-		}
-	}
-}
-
 func DownloadFile(url string) error {
 
 	// Get the data
@@ -62,13 +50,29 @@ func DownloadFile(url string) error {
 	return err
 }
 
+func addHistoryEntry(link string, f *os.File) error {
+	entry := path.Base(link)
+	entry = strings.ReplaceAll(entry, " ", "_")
+	_, err := f.WriteString(entry + "\n")
+
+	return err
+}
+
 func main() {
 	createDataFolderIfNotExist()
-	createHistoryFileIfNotExist()
 
 	// Instantiate default collector
 	c := colly.NewCollector()
 	url := "http://www.oocc.unict.it/oocc/vis_verb.asp?oocc=2"
+
+	f, err := os.OpenFile("./data/history",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	defer f.Close()
 
 	// On every a element which has href attribute call callback
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -84,12 +88,14 @@ func main() {
 
 				if documentType == "verbale" {
 					fileUrl := "http://www.oocc.unict.it/oocc" + link[1:]
-					fmt.Println("fileUrl: " + fileUrl)
 
+					fmt.Println("fileUrl: " + fileUrl)
 					err := DownloadFile(fileUrl)
 
 					if err != nil {
 						fmt.Println("Error download: " + fileUrl)
+					} else {
+						addHistoryEntry(link, f)
 					}
 				}
 			}
