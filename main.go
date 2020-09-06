@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GazzettaUniCT/history"
 	"fmt"
 	"io"
 	"log"
@@ -21,7 +22,19 @@ func createDataFolderIfNotExist() {
 			log.Fatal(err)
 		}
 	}
+}
 
+func createHistoryFileIfNotExist() {
+	_, err := os.Stat("data/history.json")
+
+	if os.IsNotExist(err) {
+		f, errFile := os.Create("data/history.json")
+		if errFile != nil {
+			log.Fatal(err)
+		}
+
+		f.Close()
+	}
 }
 
 func DownloadFile(url string) error {
@@ -50,35 +63,18 @@ func DownloadFile(url string) error {
 	return err
 }
 
-func addHistoryEntry(link string, f *os.File) error {
-	entry := path.Base(link)
-	entry = strings.ReplaceAll(entry, " ", "_")
-	_, err := f.WriteString(entry + "\n")
-
-	return err
-}
-
 func main() {
 	createDataFolderIfNotExist()
+	createHistoryFileIfNotExist()
+	const historyPath = "./data/history.json"
 
 	// Instantiate default collector
 	c := colly.NewCollector()
 	url := "http://www.oocc.unict.it/oocc/vis_verb.asp?oocc=2"
 
-	f, err := os.OpenFile("./data/history",
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-
-	if err != nil {
-		log.Panic(err)
-	}
-
-	defer f.Close()
-
 	// On every a element which has href attribute call callback
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
-		// Print link
-		//fmt.Printf("Link found: %q -> %s\n", e.Text, link)
 
 		extensionFile := strings.ToLower(link[len(link)-4:])
 
@@ -89,13 +85,20 @@ func main() {
 				if documentType == "verbale" {
 					fileUrl := "http://www.oocc.unict.it/oocc" + link[1:]
 
-					fmt.Println("fileUrl: " + fileUrl)
-					err := DownloadFile(fileUrl)
+					if history.EntryNotExist(fileUrl, historyPath) {
+						err := DownloadFile(fileUrl)
 
-					if err != nil {
-						fmt.Println("Error download: " + fileUrl)
+						if err != nil {
+							fmt.Println("Error download: " + fileUrl)
+						} else {
+							err := history.NewHistoryEntry(fileUrl, historyPath)
+
+							if err != nil {
+								log.Println(err)
+							}
+						}
 					} else {
-						addHistoryEntry(link, f)
+						log.Println(link + " already exists")
 					}
 				}
 			}
