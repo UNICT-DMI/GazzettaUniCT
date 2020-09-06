@@ -77,8 +77,6 @@ func main() {
 					if err != nil {
 						fmt.Println("Error download: " + fileUrl)
 					}
-
-					fmt.Println(documentType)
 				}
 			}
 		}
