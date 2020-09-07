@@ -1,11 +1,11 @@
 package main
 
 import (
+	"GazzettaUniCT/config"
 	"GazzettaUniCT/history"
+	"GazzettaUniCT/telegram"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -37,39 +37,22 @@ func createHistoryFileIfNotExist() {
 	}
 }
 
-func DownloadFile(url string) error {
-	// Get the data
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Get the filename
-	fileName := path.Base(url)
-	fileName = strings.ReplaceAll(fileName, " ", "_")
-	filePath := "./data/" + fileName
-
-	// Create the file
-	out, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
-}
-
 func main() {
 	createDataFolderIfNotExist()
 	createHistoryFileIfNotExist()
 	const historyPath = "./data/history.json"
+	const url = "http://www.oocc.unict.it/oocc/vis_verb.asp?oocc=2"
+
+	conf, err := config.LoadConfig()
+
+	fmt.Println(conf.BotApiKey + " " + conf.ChannelName)
+
+	if err != nil {
+		log.Panic(err)
+	}
 
 	// Instantiate default collector
 	c := colly.NewCollector()
-	url := "http://www.oocc.unict.it/oocc/vis_verb.asp?oocc=2"
 
 	// On every a element which has href attribute call callback
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
@@ -85,20 +68,18 @@ func main() {
 					fileUrl := "http://www.oocc.unict.it/oocc" + link[1:]
 
 					if history.EntryNotExist(fileUrl, historyPath) {
-						err := DownloadFile(fileUrl)
+						err := telegram.SendDocument(conf.BotApiKey, conf.ChannelName, fileUrl)
 
 						if err != nil {
-							fmt.Println("Error download: " + fileUrl)
+							fmt.Println("Error sending message: " + fileUrl)
 						} else {
 							err := history.NewHistoryEntry(fileUrl, historyPath)
-							log.Println(history.GetNameFromUrl(fileUrl) + " downloaded!")
+							log.Println("Message " + path.Base(fileUrl) + " sended!")
 
 							if err != nil {
 								log.Println(err)
 							}
 						}
-					} else {
-						log.Println(link + " already exists")
 					}
 				}
 			}
