@@ -11,7 +11,12 @@ import (
 	"strings"
 
 	"github.com/gocolly/colly"
+	"github.com/gocolly/colly/queue"
 )
+
+const historyPath = "./data/history.json"
+const urlConsiglioAmministrazione = "http://www.oocc.unict.it/oocc/vis_verb.asp?oocc=1"
+const urlSenato = "http://www.oocc.unict.it/oocc/vis_verb.asp?oocc=2"
 
 func createDataFolderIfNotExist() {
 	_, err := os.Stat("data")
@@ -40,12 +45,8 @@ func createHistoryFileIfNotExist() {
 func main() {
 	createDataFolderIfNotExist()
 	createHistoryFileIfNotExist()
-	const historyPath = "./data/history.json"
-	const url = "http://www.oocc.unict.it/oocc/vis_verb.asp?oocc=2"
 
 	conf, err := config.LoadConfig()
-
-	fmt.Println(conf.BotApiKey + " " + conf.ChannelName)
 
 	if err != nil {
 		log.Panic(err)
@@ -91,6 +92,15 @@ func main() {
 		fmt.Println("Visiting", r.URL.String())
 	})
 
+	// create a request queue with 2 consumer threads
+	q, _ := queue.New(
+		2, // Number of consumer threads
+		&queue.InMemoryQueueStorage{MaxSize: 10000}, // Use default queue storage
+	)
+
+	q.AddURL(urlSenato)
+	q.AddURL(urlConsiglioAmministrazione)
+
 	// Start scraping
-	c.Visit(url)
+	q.Run(c)
 }
