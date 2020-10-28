@@ -61,26 +61,20 @@ func main() {
 
 		extensionFile := strings.ToLower(link[len(link)-4:])
 
-		if extensionFile == ".pdf" && link[2:9] == "verbali" {
-			if len(link) > 45 {
-				documentType := strings.ToLower(link[10:17])
+		if extensionFile == ".pdf" {
+			fileUrl := "http://www.oocc.unict.it/oocc" + link[1:]
 
-				if documentType == "verbale" {
-					fileUrl := "http://www.oocc.unict.it/oocc" + link[1:]
+			if history.EntryNotExist(fileUrl, historyPath) {
+				err := telegram.SendDocument(conf.BotApiKey, conf.ChannelName, fileUrl)
 
-					if history.EntryNotExist(fileUrl, historyPath) {
-						err := telegram.SendDocument(conf.BotApiKey, conf.ChannelName, fileUrl)
+				if err != nil {
+					fmt.Println("Error sending message: " + fileUrl)
+				} else {
+					err := history.NewHistoryEntry(fileUrl, historyPath)
+					log.Println("Message " + path.Base(fileUrl) + " sended!")
 
-						if err != nil {
-							fmt.Println("Error sending message: " + fileUrl)
-						} else {
-							err := history.NewHistoryEntry(fileUrl, historyPath)
-							log.Println("Message " + path.Base(fileUrl) + " sended!")
-
-							if err != nil {
-								log.Println(err)
-							}
-						}
+					if err != nil {
+						log.Println(err)
 					}
 				}
 			}
